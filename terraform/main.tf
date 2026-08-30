@@ -7,7 +7,7 @@ terraform {
   }
 
   required_version = ">= 1.6.0"
-}   
+}
 
 provider "aws" {
   region = "ap-south-1"
@@ -120,4 +120,39 @@ resource "aws_route_table_association" "private_a" {
 resource "aws_route_table_association" "private_b" {
   subnet_id      = aws_subnet.private_b.id
   route_table_id = aws_route_table.private.id
+}
+resource "aws_security_group" "alb" {
+  name        = "qa-alb-sg"
+  description = "Security group for QA application load balancer"
+  vpc_id      = aws_vpc.qa_vpc.id
+
+  ingress {
+    description = "HTTP from internet"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "HTTPS from internet"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "Allow outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "qa-alb-sg"
+    Environment = "QA"
+    Project     = "eks-production-lab"
+  }
 }
